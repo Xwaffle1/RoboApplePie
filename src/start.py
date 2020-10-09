@@ -1,4 +1,4 @@
-import cv2 as cv
+from cv2 import cv2 as cv
 import numpy as np
 import os
 import copy
@@ -17,7 +17,7 @@ found_luma = False
 
 def detect_luma(game_img):
     found_luma = False
-    star_img = cv.imread('star_background.png')
+    star_img = cv.imread('assets/star_background.png')
 
     game2gray = cv.cvtColor(game_img, cv.COLOR_BGR2GRAY)
     star2gray = cv.cvtColor(star_img, cv.COLOR_BGR2GRAY)
@@ -62,14 +62,14 @@ def get_game_window(name):
 def take_action(state):
     if state == 'Walk':
         print(state)
-    elif state == 'Battle Started'
+    elif state == 'Battle Started':
         print(state)
-    elif state == 'Detect Luma'
+    elif state == 'Detect Luma':
         # Use Copy of ScreenShot because our loop changes screenshot so fast.
-        screenshot_copy = copy(screenshot)
+        screenshot_copy = copy.copy(screenshot)
         found_luma = detect_luma(screenshot_copy)
         print(state)
-    elif state == 'Run Away'
+    elif state == 'Run Away':
         print(state)
 
 
