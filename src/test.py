@@ -1,11 +1,18 @@
-import cv2 as cv
+from cv2 import cv2 as cv
 import numpy as np
 import pyautogui as gui
 
-game_img = cv.imread('no_luma.png', cv.IMREAD_UNCHANGED)
-star_img = cv.imread('star_background.png')
-# cv.imshow('Star',star_img)
-# cv.waitKey()
+game_img = cv.imread('assets/no_luma.png', cv.IMREAD_GRAYSCALE)
+star_img = cv.imread('assets/star.png', cv.IMREAD_GRAYSCALE)
+
+result = cv.matchTemplate(game_img, star_img, cv.TM_CCOEFF_NORMED )
+
+
+cv.imshow('Star',result)
+cv.waitKey()
+
+if(True):
+    raise "DIE"
 
 game2gray = cv.cvtColor(game_img, cv.COLOR_BGR2GRAY)
 star2gray = cv.cvtColor(star_img, cv.COLOR_BGR2GRAY)
