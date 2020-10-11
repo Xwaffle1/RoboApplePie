@@ -1,6 +1,7 @@
 from cv2 import cv2 as cv
 import numpy as np
 import pyautogui as gui
+import boto3
 
 
 
@@ -88,4 +89,23 @@ def is_Temtem_On_Screen():
 
     return is_on_screen
 
-is_Temtem_On_Screen()
+def send_text():
+    ACCESS_KEY = ''
+    SECRET_KEY = ''
+    sns = boto3.client(
+        'sns',
+         region_name='us-east-1',
+         aws_access_key_id=ACCESS_KEY,
+         aws_secret_access_key=SECRET_KEY
+    )
+    # Send a SMS message to the specified phone number
+    response = sns.publish(
+        TopicArn='arn:aws:sns:us-east-1:896080545390:TemTem_ApplePie',    
+        Message='A Luma has appeared!',    
+    )
+
+    # Print out the response
+    print(response)
+
+# is_Temtem_On_Screen()
+send_text()
