@@ -10,6 +10,7 @@ from PIL import ImageGrab
 import pyautogui as gui
 from pyautogui import press, typewrite, hotkey
 import threading
+import boto3
 
 # Current State of Bot.
 STATE = 'Walk'
@@ -120,7 +121,7 @@ def walk_circle():
 offset = 0
 def walk_line():
     global offset
-    total_time = random.randint(1000,2000)
+    total_time = random.randint(1000,1500)
     per_stroke = total_time / 4
     adjusted_stroke = per_stroke
 
@@ -160,17 +161,20 @@ def is_Temtem_On_Screen():
     # get best max positions
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
 
-    if max_val > 0.53:
-        print("FOUND TemTem Text")
-        # Show Result.
-        # star_width = early_access_image.shape[1]
-        # star_height = early_access_image.shape[0]
-        # top_left = max_loc
-        # botom_right = (top_left[0] + star_width, top_left[1] + star_height)
-        # cv.rectangle(game_screen, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
-        # cv.imshow('TemTemText?', game_screen)
-    else:
+    if max_val <= 0.53:
         is_on_screen = False
+
+    # if max_val > 0.53:
+    #     print("FOUND TemTem Text")
+    #     # Show Result.
+    #     # star_width = early_access_image.shape[1]
+    #     # star_height = early_access_image.shape[0]
+    #     # top_left = max_loc
+    #     # botom_right = (top_left[0] + star_width, top_left[1] + star_height)
+    #     # cv.rectangle(game_screen, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
+    #     # cv.imshow('TemTemText?', game_screen)
+    # else:
+    #     is_on_screen = False
         # print('NOT ON SCREEN..')
 
     return is_on_screen
@@ -184,8 +188,12 @@ def take_action():
         if on_screen:
             walk_line()
         else:
-            print('STATE CHANGING.')
-            STATE = 'Battle Started'
+            print('Checking if battle started...')
+            sleep(1/2)
+            if not is_Temtem_On_Screen():
+                STATE = 'Battle Started'
+            else:
+                print('FALSE ALARM...')
     elif STATE == 'Battle Started':
         while(not is_Temtem_On_Screen()):
             print('Waiting...')
@@ -201,18 +209,18 @@ def take_action():
             print(STATE)
             if found_luma:
                 STATE = 'FOUND LUMA'
+                send_text()
             else:
                 STATE = 'Run Away'
         # else:
         #     print ('SCREENSHOT NONE')
         sleep(2)
-    elif STATE == 'Run Away':
-        sleep(1)
-        print(STATE) 
+    elif STATE == 'Run Away':       
+        print(STATE)
         while(is_Temtem_On_Screen()):
             press('8')
             press('8')
-            sleep(1/2)
+            sleep(1/8)
         print('RAN AWAY')
         total_battles += 1
         STATE = 'Walk'
@@ -229,34 +237,36 @@ def take_screenshot():
 
     return screenshot
 
+def send_text():
+    global total_battles
+    ACCESS_KEY = ''
+    SECRET_KEY = ''
+    sns = boto3.client(
+        'sns',
+         region_name='us-east-1',
+         aws_access_key_id=ACCESS_KEY,
+         aws_secret_access_key=SECRET_KEY
+    )
+    # Send a SMS message to the specified phone number
+    response = sns.publish(
+        TopicArn='arn:aws:sns:us-east-1:896080545390:TemTem_ApplePie',    
+        Message=' A wild Luma has appeared! It took ' + str(total_battles) + ' encounters. ',    
+    )
+
+    # Print out the response
+    print(response)    
+
 def main():
     game_hwnd = get_game_window('Temtem')
-
     # Can't find Window, close program.
     if(not win32gui.IsWindow(game_hwnd) or game_hwnd == 0 or game_hwnd == None):
         cv.destroyAllWindows()
         raise 'Window not found, exiting program.'
     loop_time = time()
     while(True):
-        # get an updated image of the game
-        # position = win32gui.GetWindowRect(game_hwnd)
-        # can_see_window = win32gui.IsWindowVisible(game_hwnd) and not win32gui.IsIconic(game_hwnd)
-        # # Take screenshot
-        # if can_see_window:
-        #     screenshot = ImageGrab.grab(position)
-        #     screenshot = np.array(screenshot)
-        #     screenshot = cv.cvtColor(screenshot, cv.COLOR_RGB2BGR)
-        #     cv.imshow('Computer Vision', screenshot)
-
-        # Screenshot of WHOLE monitor.
-
-        # thread = threading.Thread(target=)
-        # thread.start()
-        # take_screenshot()
         take_action()
-        # sleep(.0001/1000)wasd
-
-        print('Loop took ' + str(time() - loop_time))        
+        if(STATE != 'Walk'):
+            print('Loop took ' + str(time() - loop_time))        
         loop_time = time()
         # Debug to show what the bot sees.
         # cv.imshow('Computer Vision', screenshot)
