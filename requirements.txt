@@ -3,3 +3,4 @@ wheel
 opencv-python
 pyautogui
 pywin32
+boto3
