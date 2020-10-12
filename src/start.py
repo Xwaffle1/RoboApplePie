@@ -23,12 +23,17 @@ current_dir = 0
 
 total_battles = 0
 
+width = 1920
+height = 1080
+
+
 print('WALKING...')
-def detect_luma(game_img):
+def detect_luma():
+    global width
+    global height
     found_luma = False
     star_img = cv.imread('assets/star_background.png')
-
-    game2gray = cv.cvtColor(game_img, cv.COLOR_BGR2GRAY)
+    game2gray = specific_screenshot((width - 300, 0, 200, 400))
     star2gray = cv.cvtColor(star_img, cv.COLOR_BGR2GRAY)
 
     result = cv.matchTemplate(game2gray, star2gray, cv.TM_CCOEFF_NORMED)
@@ -44,13 +49,13 @@ def detect_luma(game_img):
         found_luma = True
         print("FOUND LUMA")
             # Show Result.
-        star_width = star_img.shape[1]
-        star_height = star_img.shape[0]
+        # star_width = star_img.shape[1]
+        # star_height = star_img.shape[0]
 
-        top_left = max_loc
-        botom_right = (top_left[0] + star_width, top_left[1] + star_height)
+        # top_left = max_loc
+        # botom_right = (top_left[0] + star_width, top_left[1] + star_height)
 
-        cv.rectangle(game_img, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
+        # cv.rectangle(game_img, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
     return found_luma
 
 def get_game_window(name):
@@ -197,34 +202,49 @@ def is_Temtem_On_Screen():
         # print('NOT ON SCREEN..')
 
     return is_on_screen
+    
+def specific_screenshot(bbox):
+    global width
+    global height
+
+    screenshot = gui.screenshot(region=bbox) 
+    screenshot = cv.cvtColor(np.array(screenshot), cv.COLOR_RGB2BGR)
+    screenshot = cv.cvtColor(screenshot, cv.COLOR_BGR2GRAY)
+
+    return screenshot
+
+def is_Run_On_Screen():
+    global width
+    global height
+    is_on_screen = False
+    game_screen = specific_screenshot(((width/2)-100 ,(height/2)+300, 200, 200))
+    template = cv.imread('assets/run_away.png', cv.IMREAD_GRAYSCALE)
+    result = cv.matchTemplate(game_screen, template, cv.TM_CCOEFF_NORMED)
+
+
+    cv.imshow('test', game_screen)
+    # get best max positions
+    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+    
+    if(max_val > 0.8):
+        is_on_screen = False
+        
+    return is_on_screen
 
 def is_Trade_On_Screen():
-    is_on_screen = True
-    game_screen = gui.screenshot() 
-    game_screen = cv.cvtColor(np.array(game_screen), cv.COLOR_RGB2BGR)
-    game_screen = cv.cvtColor(game_screen, cv.COLOR_BGR2GRAY)
-    early_access_image = cv.imread('assets/Trade.png', cv.IMREAD_GRAYSCALE)
-    result = cv.matchTemplate(game_screen, early_access_image, cv.TM_CCOEFF_NORMED)
+    global width
+    global height
+    is_on_screen = False
+    game_screen = specific_screenshot((140,(height/2)+50, 200, 200))
+    template = cv.imread('assets/Trade.png', cv.IMREAD_GRAYSCALE)
+    result = cv.matchTemplate(game_screen, template, cv.TM_CCOEFF_NORMED)
     
     # get best max positions
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
 
     # print(str(max_val) + ' convidence for Trade')
-    if max_val <= 0.50:
-        is_on_screen = False
-
-    # if max_val > 0.53:
-    #     print("FOUND TemTem Text")
-    #     # Show Result.False
-    #     # star_width = early_access_image.shape[1]dadaa
-    #     # star_height = early_access_image.shape[0]
-    #     # top_left = max_loc
-    #     # botom_right = (top_left[0] + star_width, top_left[1] + star_height)
-    #     # cv.rectangle(game_screen, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
-    #     # cv.imshow('TemTemText?', game_screen)
-    # else:
-    #     is_on_screen = False
-        # print('NOT ON SCREEN..')
+    if max_val >= 0.70:
+        is_on_screen = True
 
     return is_on_screen
     
@@ -239,33 +259,22 @@ def take_action():
             walk_line()
         else:
             STATE = 'Battle Started'            
-    elif STATE == 'Confirm Battle Started':
-        print('Checking if battle started...')
-        if not is_Trade_On_Screen:
-                STATE = 'Battle Started'
-        else:
-            STATE = 'Walk'
-            print('FALSE ALARM...')
     elif STATE == 'Battle Started':
-        while(not is_Temtem_On_Screen()):
+        while(not is_Run_On_Screen()):
             print('Waiting...')
             sleep(1)
         print(STATE)
         sleep(1)
         STATE = 'Detect Luma'
     elif STATE == 'Detect Luma':
-        take_screenshot()
-        if screenshot is not None:
-            found_luma = detect_luma(screenshot)
-            print(STATE)
-            if found_luma:
-                STATE = 'FOUND LUMA'
-                send_text()
-            else:
-                STATE = 'Run Away'
-        # else:
-        #     print ('SCREENSHOT NONE')
-        sleep(2)
+        found_luma = detect_luma()
+        print(STATE)
+        if found_luma:
+            STATE = 'FOUND LUMA'
+            send_text()
+        else:
+            STATE = 'Run Away'    
+        sleep(1)
     elif STATE == 'Run Away':       
         print(STATE)
         while(is_Temtem_On_Screen()):
