@@ -119,8 +119,10 @@ def walk_circle():
     
 
 offset = 0
+left = 0
 def walk_line():
     global offset
+    global left
     total_time = random.randint(1000,1500)
     per_stroke = total_time / 4
     adjusted_stroke = per_stroke
@@ -131,21 +133,38 @@ def walk_line():
 
     if offset != 0:
         adjusted_stroke = per_stroke + ((offset / 2)*-1)
-        # print(str(adjusted_stroke))
+        # print(str(adjusted_stroke))88
 
-    gui.keyDown('a')    
-    sleep(adjusted_stroke / 1000)
-    gui.keyDown('d')    
-    gui.keyUp('a')
-    sleep(per_stroke / 1000)       
-    gui.keyDown('a')
-    gui.keyUp('d')        
-    sleep(per_stroke / 1000)
-    gui.keyDown('d')    
-    gui.keyUp('a')    
-    sleep(adjusted_stroke / 1000)
-    gui.keyUp('d')
-    gui.keyUp('a')
+    if left == 1:
+        left = 0
+        gui.keyDown('a')    
+        sleep(adjusted_stroke / 1000)
+        gui.keyDown('d')    
+        gui.keyUp('a')
+        sleep(per_stroke / 1000)       
+        gui.keyDown('a')
+        gui.keyUp('d')        
+        sleep(per_stroke / 1000)
+        gui.keyDown('d')    
+        gui.keyUp('a')    
+        sleep(adjusted_stroke / 1000)
+        gui.keyUp('d')
+        gui.keyUp('a')
+    else:
+        left = 1
+        gui.keyDown('d')    
+        sleep(adjusted_stroke / 1000)
+        gui.keyDown('a')    
+        gui.keyUp('d')
+        sleep(per_stroke / 1000)       
+        gui.keyDown('d')
+        gui.keyUp('a')        
+        sleep(per_stroke / 1000)
+        gui.keyDown('a')    
+        gui.keyUp('d')    
+        sleep(adjusted_stroke / 1000)
+        gui.keyUp('a')
+        gui.keyUp('d')
 
     if offset != 0:
         offset = 0
@@ -179,26 +198,58 @@ def is_Temtem_On_Screen():
 
     return is_on_screen
 
+def is_Trade_On_Screen():
+    is_on_screen = True
+    game_screen = gui.screenshot() 
+    game_screen = cv.cvtColor(np.array(game_screen), cv.COLOR_RGB2BGR)
+    game_screen = cv.cvtColor(game_screen, cv.COLOR_BGR2GRAY)
+    early_access_image = cv.imread('assets/Trade.png', cv.IMREAD_GRAYSCALE)
+    result = cv.matchTemplate(game_screen, early_access_image, cv.TM_CCOEFF_NORMED)
+    
+    # get best max positions
+    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+
+    # print(str(max_val) + ' convidence for Trade')
+    if max_val <= 0.50:
+        is_on_screen = False
+
+    # if max_val > 0.53:
+    #     print("FOUND TemTem Text")
+    #     # Show Result.False
+    #     # star_width = early_access_image.shape[1]dadaa
+    #     # star_height = early_access_image.shape[0]
+    #     # top_left = max_loc
+    #     # botom_right = (top_left[0] + star_width, top_left[1] + star_height)
+    #     # cv.rectangle(game_screen, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
+    #     # cv.imshow('TemTemText?', game_screen)
+    # else:
+    #     is_on_screen = False
+        # print('NOT ON SCREEN..')
+
+    return is_on_screen
+    
+
 def take_action():
     global STATE
     global screenshot
     global total_battles
     if STATE == 'Walk':
-        on_screen = is_Temtem_On_Screen()
+        on_screen = is_Trade_On_Screen()
         if on_screen:
             walk_line()
         else:
-            print('Checking if battle started...')
-            sleep(1/2)
-            if not is_Temtem_On_Screen():
+            STATE = 'Battle Started'            
+    elif STATE == 'Confirm Battle Started':
+        print('Checking if battle started...')
+        if not is_Trade_On_Screen:
                 STATE = 'Battle Started'
-            else:
-                print('FALSE ALARM...')
+        else:
+            STATE = 'Walk'
+            print('FALSE ALARM...')
     elif STATE == 'Battle Started':
         while(not is_Temtem_On_Screen()):
             print('Waiting...')
             sleep(1)
-
         print(STATE)
         sleep(1)
         STATE = 'Detect Luma'
