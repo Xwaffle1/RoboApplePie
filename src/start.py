@@ -14,15 +14,10 @@ import boto3
 
 # Current State of Bot.
 STATE = 'Walk'
-# Most Recent Screenshot taken.
-screenshot = None 
 # Whether the bot detected a luma.
 found_luma = False
-
 current_dir = 0
-
 total_battles = 0
-
 width = 1920
 height = 1080
 
@@ -39,7 +34,7 @@ def detect_luma():
     result = cv.matchTemplate(game2gray, star2gray, cv.TM_CCOEFF_NORMED)
 
     # get best max positions
-    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+    max_val = cv.minMaxLoc(result)[1]
 
     # print('Best Match loc: %s' % str(max_loc))
     print('Best Match confidence: %s'    % str(max_val))
@@ -48,30 +43,7 @@ def detect_luma():
     if(max_val > 0.7):
         found_luma = True
         print("FOUND LUMA")
-            # Show Result.
-        # star_width = star_img.shape[1]
-        # star_height = star_img.shape[0]
-
-        # top_left = max_loc
-        # botom_right = (top_left[0] + star_width, top_left[1] + star_height)
-
-        # cv.rectangle(game_img, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
     return found_luma
-
-def get_game_window(name):
-    # Get All Open Windows.
-    windows_list = []
-    toplist = []
-    def enum_win(hwnd, result):
-        win_text = win32gui.GetWindowText(hwnd)
-        windows_list.append((hwnd, win_text))
-    win32gui.EnumWindows(enum_win, toplist)
-    game_hwnd = 0
-    for (hwnd, win_text) in windows_list:
-        if name in win_text:
-            game_hwnd = hwnd
-
-    return game_hwnd
 
 def press_key(keys, milliseconds):
     start = time()
@@ -112,15 +84,17 @@ def walk_circle():
     sleep(.03/1000)
     gui.keyDown('a')    
     gui.keyUp('w')
-
-    sleep(.020/1000)       
+    sleep(.03/1000)       
     gui.keyDown('s')
     gui.keyUp('a')        
-    sleep(.001/1000)
+    sleep(.03/1000)
     gui.keyDown('d')    
     gui.keyUp('s')    
-    sleep(.025/1000)
+    sleep(.04/1000)
     gui.keyUp('d')
+    gui.keyDown('w')
+    sleep(.005/1000)
+    gui.keyUp('w')
     
 
 offset = 0
@@ -183,7 +157,7 @@ def is_Temtem_On_Screen():
     result = cv.matchTemplate(game_screen, early_access_image, cv.TM_CCOEFF_NORMED)
     
     # get best max positions
-    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+    max_val = cv.minMaxLoc(result)[1]
 
     if max_val <= 0.53:
         is_on_screen = False
@@ -213,50 +187,39 @@ def specific_screenshot(bbox):
 
     return screenshot
 
+# Gets confidance level of check_for being inside image.
+def get_confidance(image, check_for):
+    # game_screen = specific_screenshot(((width/2)-100 ,(height/2)+300, 200, 200))
+    # template = cv.imread('assets/run_away.png', cv.IMREAD_GRAYSCALE)
+    result = cv.matchTemplate(image, check_for, cv.TM_CCOEFF_NORMED)
+    max_val = cv.minMaxLoc(result)[1]
+    return max_val
+
 def is_Run_On_Screen():
     global width
     global height
-    is_on_screen = False
     game_screen = specific_screenshot(((width/2)-100 ,(height/2)+300, 200, 200))
     template = cv.imread('assets/run_away.png', cv.IMREAD_GRAYSCALE)
-    result = cv.matchTemplate(game_screen, template, cv.TM_CCOEFF_NORMED)
-
-
-    cv.imshow('test', game_screen)
-    # get best max positions
-    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
-    
-    if(max_val > 0.8):
-        is_on_screen = False
-        
-    return is_on_screen
+    conf = get_confidance(game_screen, template)
+    return conf > 0.8
 
 def is_Trade_On_Screen():
     global width
     global height
-    is_on_screen = False
     game_screen = specific_screenshot((140,(height/2)+50, 200, 200))
     template = cv.imread('assets/Trade.png', cv.IMREAD_GRAYSCALE)
-    result = cv.matchTemplate(game_screen, template, cv.TM_CCOEFF_NORMED)
-    
-    # get best max positions
-    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
-
-    # print(str(max_val) + ' convidence for Trade')
-    if max_val >= 0.70:
-        is_on_screen = True
-
-    return is_on_screen
+    conf = get_confidance(game_screen, template)
+    return conf > 0.7
     
 
 def take_action():
     global STATE
-    global screenshot
     global total_battles
     if STATE == 'Walk':
         on_screen = is_Trade_On_Screen()
         if on_screen:
-            walk_line()
+            walk_circle()
+            # walk_line()
         else:
             STATE = 'Battle Started'            
     elif STATE == 'Battle Started':
@@ -274,27 +237,25 @@ def take_action():
             send_text()
         else:
             STATE = 'Run Away'    
-        sleep(1)
     elif STATE == 'Run Away':       
         print(STATE)
-        while(is_Temtem_On_Screen()):
+        while(is_Run_On_Screen()):
             press('8')
             press('8')
             sleep(1/8)
         print('RAN AWAY')
         total_battles += 1
         STATE = 'Walk'
-        sleep(2)
+        while(not is_Trade_On_Screen()):
+            sleep(1/8)
         print('Total Encounters: ' + str(total_battles))
     elif STATE == 'FOUND LUMA':
         sleep(30)
         print('Total Encounters: ' + str(total_battles))
 
 def take_screenshot():
-    global screenshot
     screenshot = gui.screenshot() 
     screenshot = cv.cvtColor(np.array(screenshot), cv.COLOR_RGB2BGR)
-
     return screenshot
 
 def send_text():
@@ -317,19 +278,18 @@ def send_text():
     print(response)    
 
 def main():
-    game_hwnd = get_game_window('Temtem')
-    # Can't find Window, close program.
-    if(not win32gui.IsWindow(game_hwnd) or game_hwnd == 0 or game_hwnd == None):
-        cv.destroyAllWindows()
-        raise 'Window not found, exiting program.'
-    loop_time = time()
+    # loop_time = time()
     while(True):
-        take_action()
-        if(STATE != 'Walk'):
-            print('Loop took ' + str(time() - loop_time))        
-        loop_time = time()
-        # Debug to show what the bot sees.
-        # cv.imshow('Computer Vision', screenshot)
+        active_window = gui.getActiveWindow()    
+        if active_window.title == 'Temtem':
+            take_action()
+        else:
+            print('TemTem not opened..')
+            sleep(2)
+
+        # if(STATE != 'Walk'):
+            # print('Loop took ' + str(time() - loop_time))        
+        # loop_time = time()
 
 if __name__ == "__main__":
     main()
