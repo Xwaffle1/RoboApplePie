@@ -18,8 +18,13 @@ STATE = 'Walk'
 found_luma = False
 current_dir = 0
 total_battles = 0
+# Width and Height of Screen.
 width = 1920
 height = 1080
+# Whether the bot should capture the TemTem for you.
+catch = False
+x = 0
+y = 0
 
 
 print('WALKING...')
@@ -100,8 +105,7 @@ def walk_circle():
 offset = 0
 left = 0
 def walk_line():
-    global offset
-    global left
+    global offset, left, x, y
     total_time = random.randint(1000,1500)
     per_stroke = total_time / 4
     adjusted_stroke = per_stroke
@@ -131,7 +135,7 @@ def walk_line():
         gui.keyUp('a')
     else:
         left = 1
-        gui.keyDown('d')    
+        gui.keyDown('d')
         sleep(adjusted_stroke / 1000)
         gui.keyDown('a')    
         gui.keyUp('d')
@@ -211,15 +215,24 @@ def is_Trade_On_Screen():
     conf = get_confidance(game_screen, template)
     return conf > 0.7
     
+def use_tem_card():
+    sleep(random.randint(100,300)/1000)
+    press('7')
+    sleep(random.randint(100,300)/1000)
+    press('e')
+    sleep(random.randint(100,300)/1000)
+    press('f')
 
 def take_action():
     global STATE
     global total_battles
+    global catch
     if STATE == 'Walk':
         on_screen = is_Trade_On_Screen()
-        if on_screen:
-            walk_circle()
-            # walk_line()
+        if on_screen:            
+            walk_line()
+            if(random.randint(0,2) == 1):
+                walk_circle()
         else:
             STATE = 'Battle Started'            
     elif STATE == 'Battle Started':
@@ -235,6 +248,8 @@ def take_action():
         if found_luma:
             STATE = 'FOUND LUMA'
             send_text()
+            if catch:
+                STATE = 'CAPTURE'
         else:
             STATE = 'Run Away'    
     elif STATE == 'Run Away':       
@@ -252,6 +267,9 @@ def take_action():
     elif STATE == 'FOUND LUMA':
         sleep(30)
         print('Total Encounters: ' + str(total_battles))
+    elif STATE == 'CAPTURE':
+        if is_Run_On_Screen():
+            use_tem_card()
 
 def take_screenshot():
     screenshot = gui.screenshot() 
@@ -278,11 +296,21 @@ def send_text():
     print(response)    
 
 def main():
-    # loop_time = time()
+
+    global width
+    global height
+
+    last_mouse_move = time()
     while(True):
         active_window = gui.getActiveWindow()    
-        if active_window.title == 'Temtem':
+        if active_window != None and active_window.title == 'Temtem':
             take_action()
+            if last_mouse_move + random.randint(10,20) < time():
+                last_mouse_move = time()
+                if(random.randint(0, 100) < 10):
+                    gui.moveTo(width/2 + random.randint(-500,200), random.randint(100,400), duration=(random.randint(1,2) * random.random()))
+                    gui.leftClick()
+
         else:
             print('TemTem not opened..')
             sleep(2)
