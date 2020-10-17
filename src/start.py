@@ -25,7 +25,7 @@ height = 1080
 catch = False
 x = 0
 y = 0
-
+file_path_str = None
 
 print('WALKING...')
 def detect_luma():
@@ -223,6 +223,12 @@ def use_tem_card():
     sleep(random.randint(100,300)/1000)
     press('f')
 
+def update_text_file():
+    global total_battles
+    f = open(file_path_str, "w")
+    f.write(str(total_battles))
+    f.close()
+
 def take_action():
     global STATE
     global total_battles
@@ -260,6 +266,7 @@ def take_action():
             sleep(1/8)
         print('RAN AWAY')
         total_battles += 1
+        update_text_file()
         STATE = 'Walk'
         while(not is_Trade_On_Screen()):
             sleep(1/8)
@@ -299,6 +306,21 @@ def main():
 
     global width
     global height
+    global file_path_str
+    global total_battles
+
+    user_folder = os.environ['HOMEPATH']
+    file_path_str = user_folder + "\\CurrentEncounters.txt"
+
+    if(not os.path.exists(file_path_str)):
+        print("FILE NOT FOUND: " + file_path_str)
+        return
+    else:
+        print(file_path_str)
+        f = open(file_path_str, "r")
+        total_battles = int(f.readline())
+        print("BOT STARTED WITH: " + str(total_battles) + " battles")
+        f.close()
 
     last_mouse_move = time()
     while(True):
