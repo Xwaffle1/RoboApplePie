@@ -1,0 +1,109 @@
+		private void ConfigureLabels()
+		{
+			this.anchorsCount = Enum.GetNames(typeof(LabelAnchor)).Length + 1;
+			this.labels = new DrawableLabel[this.anchorsCount];
+			for (int i = 0; i < this.anchorsCount; i++)
+			{
+				this.labels[i] = new DrawableLabel(this.canvas.gameObject, (LabelAnchor)i, this.paddingOffset, this.labelsFont, this.fontSize, this.lineSpacing);
+			}
+			this.labels[this.anchorsCount - 1] = new DrawableLabel(this.canvas.gameObject, (LabelAnchor)((byte)this.anchorsCount - 1), this.paddingOffset, this.labelsFont, this.fontSize * 3, this.lineSpacing);
+		}
+
+		internal void UpdateTexts()
+		{
+			string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+			string s = folderPath + "\\CurrentEncounters.txt - Does not exist.";
+			if (File.Exists(folderPath + "\\CurrentEncounters.txt"))
+			{
+				s = File.ReadAllText(folderPath + "\\CurrentEncounters.txt");
+				if (this.totalEncounters < 0)
+				{
+					try
+					{
+						this.totalEncounters = int.Parse(s);
+					}
+					catch (FormatException)
+					{
+						this.totalEncounters = -1;
+					}
+				}
+				try
+				{
+					this.currentEncounters = int.Parse(s) - this.totalEncounters;
+				}
+				catch (FormatException)
+				{
+					this.currentEncounters = -1;
+				}
+			}
+			if (this.operationMode != OperationMode.Normal)
+			{
+				return;
+			}
+			bool flag = false;
+			if (this.fpsCounter.Enabled)
+			{
+				DrawableLabel drawableLabel = this.labels[(int)this.fpsCounter.Anchor];
+				if (drawableLabel.newText.Length > 0)
+				{
+					drawableLabel.newText.Append(new string('\n', this.countersSpacing + 1));
+				}
+				drawableLabel.newText.Append(this.fpsCounter.text);
+				drawableLabel.dirty |= this.fpsCounter.dirty;
+				this.fpsCounter.dirty = false;
+				flag = true;
+			}
+			if (this.memoryCounter.Enabled)
+			{
+				DrawableLabel drawableLabel2 = this.labels[(int)this.memoryCounter.Anchor];
+				if (drawableLabel2.newText.Length > 0)
+				{
+					drawableLabel2.newText.Append(new string('\n', this.countersSpacing + 1));
+				}
+				drawableLabel2.newText.Append(this.memoryCounter.text);
+				drawableLabel2.dirty |= this.memoryCounter.dirty;
+				this.memoryCounter.dirty = false;
+				flag = true;
+			}
+			if (this.deviceInfoCounter.Enabled)
+			{
+				DrawableLabel drawableLabel3 = this.labels[(int)this.deviceInfoCounter.Anchor];
+				if (drawableLabel3.newText.Length > 0)
+				{
+					drawableLabel3.newText.Append(new string('\n', this.countersSpacing + 1));
+				}
+				drawableLabel3.newText.Append("TEST");
+				drawableLabel3.dirty |= this.deviceInfoCounter.dirty;
+				this.deviceInfoCounter.dirty = false;
+				flag = true;
+			}
+			DrawableLabel drawableLabel4 = this.labels[0];
+			if (drawableLabel4.newText.Length > 0)
+			{
+				drawableLabel4.newText.Append(new string('\n', this.countersSpacing + 1));
+			}
+			string arg = AFPSCounter.Color32ToHex(Color.red);
+			string arg2 = AFPSCounter.Color32ToHex(Color.yellow);
+			string value = string.Format("<size=20><color=#{0}><b>", arg);
+			string value2 = string.Format("<size=20><color=#{0}><b>", arg2);
+			drawableLabel4.newText.Append(value2).Append("Total Encounters: ").Append("</b></color></size>").Append(value).Append(this.totalEncounters + this.currentEncounters).Append("</b></color></size>");
+			drawableLabel4.newText.Append(new string('\n', this.countersSpacing + 1));
+			drawableLabel4.newText.Append(value2).Append("Current Encounters: ").Append("</b></color></size>").Append(value).Append(this.currentEncounters).Append("</b></color></size>");
+			drawableLabel4.dirty = true;
+			if (flag)
+			{
+				for (int i = 0; i < this.labels.Length; i++)
+				{
+					this.labels[i].CheckAndUpdate();
+				}
+				return;
+			}
+			for (int j = 0; j < this.labels.Length; j++)
+			{
+				this.labels[j].Clear();
+			}
+		}
+
+		private int currentEncounters;
+
+		private int totalEncounters = -1;
