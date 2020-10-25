@@ -6,7 +6,7 @@ from PIL import ImageGrab
 from win32api import GetSystemMetrics
 from time import time
 
-
+from ai import walk
 
 
 # game_img = cv.imread('assets/luma_right.png', cv.IMREAD_GRAYSCALE)
@@ -55,7 +55,7 @@ from time import time
 
 
 
-#     print('Best Match loc: %s' % str(max_loc))
+#     print('Best Match loc: %s' % str(max_loc))wdwdwdwdwdwddddwwwddddddddddddddddwwwwwwdddddddddddddwwwwwwwwdddddddddddddddddddddddwwwwwaaadddsssssssswwwwaaaa
 #     # print('Best Match confidence: %s'    % str(max_val))
 
 #     if(max_val > 0.8):
@@ -193,8 +193,9 @@ def detect_luma():
 
         # cv.rectangle(game_img, top_left, botom_right, color=(0,255,255), thickness = 2, lineType = cv.LINE_4)
     return found_luma    
-    
+# while True:
+#     take_ac
 
-temp_time = time()
-detect_luma()
-print(str(time()-temp_time))
+# temp_time = time()
+# detect_luma()
+# print(str(time()-temp_time))
