@@ -2,6 +2,7 @@ import os
 from cv2 import cv2 as cv
 import pyautogui as gui
 import numpy as np
+import pytesseract
 
 # Width and Height of Screen.
 width = 1920
@@ -55,6 +56,14 @@ def specific_screenshot(bbox):
 
     return screenshot
 
+def specific_screenshot_color(bbox):
+    global width
+    global height
+
+    screenshot = gui.screenshot(region=bbox) 
+    screenshot = cv.cvtColor(np.array(screenshot), cv.COLOR_BGR2RGBA)
+    return screenshot
+
 # Gets confidance level of check_for being inside image.
 def get_confidance(image, check_for):
     # game_screen = specific_screenshot(((width/2)-100 ,(height/2)+300, 200, 200))
@@ -71,6 +80,33 @@ def is_Run_On_Screen():
     conf = get_confidance(game_screen, template)
     return conf > 0.8
 
+
+def is_Fish_On_Screen():
+    global width
+    global height
+    game_screen = specific_screenshot_color(((width/2)-400 ,(height/2), 200, 200))    
+    template = cv.imread('assets/fish_on_4.png', cv.IMREAD_UNCHANGED)
+    # cv.imshow("GAME", game_screen)
+    # cv.waitKey()
+    conf = get_confidance(game_screen, template)
+    # if(conf > 0.7):
+    # print(conf)
+    return conf > 0.70
+
+def is_Fish_Icon_On_Screen():
+    global width
+    global height
+    game_screen = specific_screenshot_color(((width/2)-400 ,(height/2)-400, 800, 800))    
+    template = cv.imread('assets/fish_icon.png', cv.IMREAD_UNCHANGED)
+    # cv.imshow("GAME", game_screen)
+    # cv.waitKey()a
+    conf = get_confidance(game_screen, template)
+    # if(conf > 0.6):
+    print(conf)
+    return conf > 0.8
+
+
+
 def is_Trade_On_Screen():
     global width
     global height
@@ -84,8 +120,11 @@ def detect_luma():
     global height
     found_luma = False
     star_img = cv.imread('assets/star_background.png')
-    game2gray = specific_screenshot((width - 300, 0, 200, 400))
+    game2gray = specific_screenshot((width - 800, 0, 800, 200))
     star2gray = cv.cvtColor(star_img, cv.COLOR_BGR2GRAY)
+
+    # cv.imshow("game2gray", game2gray)
+    # cv.waitKey()
 
     result = cv.matchTemplate(game2gray, star2gray, cv.TM_CCOEFF_NORMED)
 
