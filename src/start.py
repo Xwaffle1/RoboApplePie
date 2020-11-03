@@ -11,41 +11,24 @@ import pyautogui as gui
 from pyautogui import press, typewrite, hotkey
 import threading
 import boto3
-from ai import walk, walk_to, origin, position, ai_STATE
+from ai import walk_to, origin, position, ai_STATE
 from util import *
 
 # Current State of Bot.
 STATE = 'Walk'
-# Whether the bot detected a luma.
-found_luma = False
+# Number of battles currently cached.
 total_battles = 0
 # Width and Height of Screen.
 width = 1920
 height = 1080
-# Whether the bot should capture the TemTem for you.
-catch = False
-x = 0
-y = 0
 
+# Whether the bot should capture the TemTem for you.
+catchLuma = False
+freeTem = False
+
+SEARCH_FOR = "Occlura"
 
 print('WALKING...')
-
-def walk_circle():
-    gui.keyDown('w')
-    sleep(.03/1000)
-    gui.keyDown('a')    
-    gui.keyUp('w')
-    sleep(.03/1000)       
-    gui.keyDown('s')
-    gui.keyUp('a')        
-    sleep(.03/1000)
-    gui.keyDown('d')    
-    gui.keyUp('s')    
-    sleep(.04/1000)
-    gui.keyUp('d')
-    gui.keyDown('w')
-    sleep(.005/1000)
-    gui.keyUp('w')
         
 def use_tem_card():
     sleep(random.randint(100,300)/1000)
@@ -56,18 +39,12 @@ def use_tem_card():
     press('f')
 
 def take_action():
-    global STATE
-    global total_battles
-    global catch
-    global position, origin, ai_STATE
+    global STATE, total_battles, catchLuma, position, origin, ai_STATE, SEARCH_FOR
     if STATE == 'Walk':
         on_screen = is_Trade_On_Screen()
         if on_screen:     
-            walk_to(origin[0] + random.randint(-4, -1), origin[2] + random.randint(-6, -1))
-            # if(random.randint(0,2) == 1):
-                # walk_circle()
+            walk_to(origin[0] + random.randint(1, 4), origin[2] + random.randint(-7, 0))
         else:
-
             for key in ['w', 'a', 's', 'd']:
                 gui.keyUp(key)
             STATE = 'Battle Started'            
@@ -84,11 +61,17 @@ def take_action():
         if found_luma:
             STATE = 'FOUND LUMA'
             send_text()
-            if catch:
-                STATE = 'CAPTURE'
         else:
-            STATE = 'Run Away'    
-    elif STATE == 'Run Away':       
+            if freeTem:
+                STATE = 'Free Tem Capture'
+            else:
+                STATE = 'Run Away'    
+    elif STATE == 'Run Away':
+
+
+        correct_temtem = count_temtem_names(SEARCH_FOR)
+        print("FOUND: " + str(correct_temtem))
+        
         print(STATE)
         while(is_Run_On_Screen()):
             press('8')
@@ -107,8 +90,10 @@ def take_action():
     elif STATE == 'CAPTURE':
         if is_Run_On_Screen():
             use_tem_card()
-
-    ai_STATE = ai_STATE
+    elif STATE == 'Detect FreeTem':
+        # detect_free_tem()
+        pass
+    ai_STATE = STATE
 
 def take_screenshot():
     screenshot = gui.screenshot() 
