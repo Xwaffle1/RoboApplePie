@@ -24,17 +24,37 @@ def read_current_battles():
 
 def update_text_file(total_battles):
     global file_path_str
-    f = open(file_path_str, "w")
-    f.write(str(total_battles))
-    f.close()        
+    f = None
+    try:
+        f = open(file_path_str, "w")
+        f.write(str(total_battles))
+        f.close()        
+    except:
+        pass
+    finally:
+        if f is not None:
+            f.close()
 
 last_position = [None] * 3
 def read_player_pos():
     global user_folder, last_position
     position = [None] * 3
     file_path_str = user_folder + "\\PlayerLocation.txt"
-    f = open(file_path_str, "r")
-    line = f.readline().replace("\n", "")
+    
+    f = None
+    line = None
+    try:
+        f = open(file_path_str, "r")
+        line = f.readline().replace("\n", "")
+    except:
+        return last_position
+    finally:
+        if f is not None:
+            f.close()
+
+    if line is None:
+        return last_position
+
     split = line.split(', ')
     if(len(split) == 3):
         position[0] = float(split[0])
