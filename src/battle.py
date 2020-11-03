@@ -11,7 +11,7 @@ import pyautogui as gui
 from pyautogui import press, typewrite, hotkey
 import threading
 import boto3
-from ai import walk, walk_to, origin, position, ai_STATE
+from ai import walk_to, origin, position, ai_STATE
 from util import *
 
 # Current State of Bot.
@@ -22,43 +22,15 @@ total_battles = 0
 # Width and Height of Screen.
 width = 1920
 height = 1080
-# Whether the bot should capture the TemTem for you.
-catch = False
+
 x = 0
 y = 0
 
 
 print('WALKING...')
-
-def walk_circle():
-    gui.keyDown('w')
-    sleep(.03/1000)
-    gui.keyDown('a')    
-    gui.keyUp('w')
-    sleep(.03/1000)       
-    gui.keyDown('s')
-    gui.keyUp('a')        
-    sleep(.03/1000)
-    gui.keyDown('d')    
-    gui.keyUp('s')    
-    sleep(.04/1000)
-    gui.keyUp('d')
-    gui.keyDown('w')
-    sleep(.005/1000)
-    gui.keyUp('w')
-        
-def use_tem_card():
-    sleep(random.randint(100,300)/1000)
-    press('7')
-    sleep(random.randint(100,300)/1000)
-    press('e')
-    sleep(random.randint(100,300)/1000)
-    press('f')
-
 def take_action():
     global STATE
     global total_battles
-    global catch
     global position, origin, ai_STATE
     if STATE == 'Walk':
         on_screen = is_Trade_On_Screen()
@@ -82,8 +54,6 @@ def take_action():
         if found_luma:
             STATE = 'FOUND LUMA'
             # send_text()
-            if catch:
-                STATE = 'CAPTURE'
         else:
             STATE = 'Fight'    
     elif STATE == 'Fight':       
@@ -107,10 +77,7 @@ def take_action():
         print('Total Encounters: ' + str(total_battles))
     elif STATE == 'FOUND LUMA':
         sleep(30)
-        print('Total Encounters: ' + str(total_battles))
-    elif STATE == 'CAPTURE':
-        if is_Run_On_Screen():
-            use_tem_card()
+        print('Total Encounters: ' + str(total_battles))    
 
     ai_STATE = ai_STATE
 
