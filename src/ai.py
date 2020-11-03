@@ -10,45 +10,9 @@ position = [None] * 3
 origin = [None] * 3
 ai_STATE = 'Walk'
 
-def get_possible_dir(ms):
-    global origin, radius_x, radius_y, position
-    chars = []
-    x = position[0] 
-    z = position[2]
-
-    if x - 1 >= origin[0] - radius_x:
-        chars.append('a')
-        
-    if x + 1 <= origin[0] + radius_x:
-        chars.append('d')
-
-    if z - 1 >= origin[2] - radius_y:
-        chars.append('s')
-
-    if z + 1 <= origin[2] + radius_y:
-        chars.append('w')
-
-    # if x - ms >= -radius and y + ms <= radius:
-    #     chars.append('aw')
-
-    # if x - ms >= -radius and y - ms >= -radius:
-    #     chars.append('as')
-
-    # if x + ms <= radius and y + ms <= radius:
-    #     chars.append('dw')
-
-    # if x + ms <= radius and y - ms >= -radius:
-    #     chars.append('ds')        
-
-    return chars
-
 def player_in_area():
     global origin, position, radius_x, radius_y
 
-    # print(origin)
-    # print(position)
-    # print(radius)
-    
     if position == None:
         return False
 
@@ -61,17 +25,6 @@ def player_in_area():
     if not in_area:
         print("NOT IN AREA.")
     return in_area
-
-def walk(origin_param, position_param):
-    global origin, position
-    origin = origin_param
-    position = position_param
-    milliseconds = 10 * random.randint(20, 50)
-    keys = get_possible_dir(milliseconds)
-    print(keys)
-    rand = random.randint(0, len(keys)-1)
-    keys_to_press = list(keys[rand])
-    press_key(keys_to_press, milliseconds)
 
 def press_key(keys, milliseconds):
     start = time()
@@ -132,9 +85,3 @@ def walk_to(x, z):
     
     for key in ['w', 'a', 's', 'd']:
         gui.keyUp(key)
-
-# position = read_player_pos()
-# origin = position.copy()
-
-# while True:
-#     walk_to(origin[0] + random.randint(-1, 1), origin[2] + random.randint(0, 4))
