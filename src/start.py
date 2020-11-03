@@ -43,7 +43,9 @@ def take_action():
     if STATE == 'Walk':
         on_screen = is_Trade_On_Screen()
         if on_screen:     
-            walk_to(origin[0] + random.randint(1, 4), origin[2] + random.randint(-7, 0))
+            walk_to(origin[0] + random.randint(1, 5), origin[2] + random.randint(-7, -1))
+            # if(random.randint(0,2) == 1):
+                # walk_circle()
         else:
             for key in ['w', 'a', 's', 'd']:
                 gui.keyUp(key)
@@ -102,8 +104,8 @@ def take_screenshot():
 
 def send_text():
     global total_battles
-    ACCESS_KEY = ''
-    SECRET_KEY = ''
+    ACCESS_KEY = 'AKIA5BIUQAZXH6ANVR73'
+    SECRET_KEY = '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'
     sns = boto3.client(
         'sns',
          region_name='us-east-1',
