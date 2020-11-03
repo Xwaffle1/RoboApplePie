@@ -10,6 +10,29 @@ height = 1080
 
 user_folder = os.environ['HOMEPATH']
 file_path_str = user_folder + "\\CurrentEncounters.txt"
+pytesseract.pytesseract.tesseract_cmd= r'C:\Program Files\Tesseract-OCR\\tesseract.exe'
+
+
+
+def count_temtem_names(search_for):
+    names = specific_screenshot_color((width - 800, 0, 800, 200))
+    hsv = cv.cvtColor(names, cv.COLOR_BGR2HSV)
+    mask = cv.inRange(hsv,(0, 0, 0), (1, 1, 255) )
+    res = cv.bitwise_and(names,names, mask= mask)
+    res2 = cv.bitwise_not(res)
+    gray = cv.cvtColor(res2, cv.COLOR_BGR2GRAY)
+    text = pytesseract.image_to_string(gray, config='--psm 6')
+
+    count = 0
+
+    for line in text.split("\n"):
+        # print(line)
+        temtem = line.split(" ")[0]
+        # print(temtem + " == " + search_for)
+        if temtem.lower() == search_for.lower():
+            count = count + 1
+    return count
+
 
 def read_current_battles():
     global file_path_str
