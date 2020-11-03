@@ -26,25 +26,9 @@ height = 1080
 catchLuma = False
 freeTem = False
 
+SEARCH_FOR = "Occlura"
 
 print('WALKING...')
-
-def walk_circle():
-    gui.keyDown('w')
-    sleep(.03/1000)
-    gui.keyDown('a')    
-    gui.keyUp('w')
-    sleep(.03/1000)       
-    gui.keyDown('s')
-    gui.keyUp('a')        
-    sleep(.03/1000)
-    gui.keyDown('d')    
-    gui.keyUp('s')    
-    sleep(.04/1000)
-    gui.keyUp('d')
-    gui.keyDown('w')
-    sleep(.005/1000)
-    gui.keyUp('w')
         
 def use_tem_card():
     sleep(random.randint(100,300)/1000)
@@ -55,7 +39,7 @@ def use_tem_card():
     press('f')
 
 def take_action():
-    global STATE, total_battles, catchLuma, position, origin, ai_STATE
+    global STATE, total_battles, catchLuma, position, origin, ai_STATE, SEARCH_FOR
     if STATE == 'Walk':
         on_screen = is_Trade_On_Screen()
         if on_screen:     
@@ -82,7 +66,12 @@ def take_action():
                 STATE = 'Free Tem Capture'
             else:
                 STATE = 'Run Away'    
-    elif STATE == 'Run Away':       
+    elif STATE == 'Run Away':
+
+
+        correct_temtem = count_temtem_names(SEARCH_FOR)
+        print("FOUND: " + str(correct_temtem))
+        
         print(STATE)
         while(is_Run_On_Screen()):
             press('8')
