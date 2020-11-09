@@ -104,8 +104,8 @@ def take_screenshot():
 
 def send_text():
     global total_battles
-    ACCESS_KEY = 'AKIA5BIUQAZXH6ANVR73'
-    SECRET_KEY = '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'
+    ACCESS_KEY = ''
+    SECRET_KEY = ''
     sns = boto3.client(
         'sns',
          region_name='us-east-1',

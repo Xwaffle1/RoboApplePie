@@ -58,23 +58,24 @@ def take_action():
             STATE = 'Fight'    
     elif STATE == 'Fight':       
         print(STATE)
-        sleep(1)
-        
-        press('6')
-        sleep(random.randint(300,600)/1000)
-        press('1')
-        sleep(random.randint(300,600)/1000)
-        press('up')
-        sleep(random.randint(300,600)/1000)
-        press('f')
-        sleep(1)
-        total_battles += 1
-        update_text_file(total_battles)
-        STATE = 'Walk'
-        while(not is_Trade_On_Screen()):
-            sleep(1/8)
+        if is_Run_On_Screen():
+            press('1')
+            sleep(random.randint(300,600)/1000)
             press('f')
-        print('Total Encounters: ' + str(total_battles))
+            sleep(random.randint(300,600)/1000)
+            press('1')
+            # sleep(random.randint(300,600)/1000)
+            # press('w')
+            sleep(random.randint(300,600)/1000)
+            press('f')
+        else:
+            sleep(random.randint(500,1000)/1000)
+            press('f')
+            if (is_Trade_On_Screen()):
+                STATE='Walk'
+                total_battles += 1
+                update_text_file(total_battles)
+                print('Total Encounters: ' + str(total_battles))
     elif STATE == 'FOUND LUMA':
         sleep(30)
         print('Total Encounters: ' + str(total_battles))    
