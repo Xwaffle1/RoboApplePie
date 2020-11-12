@@ -24,11 +24,11 @@ def count_temtem_names(search_for):
     text = pytesseract.image_to_string(gray, config='--psm 6')
 
     count = 0
-
+    # print(">" + text + "<")
     for line in text.split("\n"):
-        # print(line)
-        temtem = line.split(" ")[0]
-        # print(temtem + " == " + search_for)
+        print(">" + line + "<")        
+        temtem = line.replace(": ", "").replace("= ", "").split(" ")[0]
+        print(temtem + " == " + search_for)
         if temtem.lower() == search_for.lower():
             count = count + 1
     return count

@@ -80,7 +80,7 @@ def take_action():
             press('8')
             sleep(1/8)
         print('RAN AWAY')
-        total_battles += 1
+        total_battles += correct_temtem
         update_text_file(total_battles)
         STATE = 'Walk'
         while(not is_Trade_On_Screen()):
